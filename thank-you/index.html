@@ -1,0 +1,354 @@
+<!DOCTYPE html><html lang="en"><head><base href="/6a145c747bff10f9e9b453c8-preview/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content=""><title>testt</title><link rel="icon" href="favicon.ico" type="image/x-icon"><script>
+sessionStorage.setItem("test", true);
+
+const ALLOWED_AFFILIATE_IDS = [];
+
+let nextPageSlug = null;
+
+function handleUrlParams(params) {
+  const specialParams = ["p_dc", "p_tenbucksoff", "p_freeship", "p_freegift"];
+  const allowedDcValues = ["5", "10", "15", "20", "25"];
+  const currentAffId = params.get("affid") || sessionStorage.getItem("affid");
+  const discountsAllowed =
+    ALLOWED_AFFILIATE_IDS.length === 0 ||
+    (currentAffId !== null && ALLOWED_AFFILIATE_IDS.includes(currentAffId));
+  if (!discountsAllowed) {
+    specialParams.forEach((key) => sessionStorage.removeItem(key));
+  }
+  params.forEach((value, key) => {
+    const paramKey = `p_${key}`;
+    if (specialParams.includes(paramKey)) {
+      if (!discountsAllowed) return;
+      if (paramKey === "p_dc" && !allowedDcValues.includes(value)) return;
+      sessionStorage.setItem(paramKey, value);
+    } else {
+      sessionStorage.setItem(key, value);
+    }
+  });
+}
+
+if (localStorage.getItem('sK_r')) {
+  const cr = JSON.parse(localStorage.getItem('sK_r'));
+  const normalizePath = (rawPath) => {
+    if (!rawPath) return '';
+    try {
+      let p = String(rawPath);
+      p = p.split('?')[0].split('#')[0];
+      p = p.replace(/\/+$/, '');
+      p = p.replace(/\/index.html$/, '');
+      p = p.replace(/^\/+/, ''); p = p.replace(/^6a145c747bff10f9e9b453c8-preview\/?/, '');
+      return p;
+    } catch (e) {
+      console.error('Error normalizing path', e);
+      return '';
+    }
+  };
+  const pathname = window.location.pathname;
+  const cp = normalizePath(pathname || '/');
+  let nr = cr.find((r) => r.page === cp);
+  if (nr) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const baseNext = pathname.endsWith("/index.html") ? nr.next + "/index.html" : nr.next || '';
+    const withQuery = urlParams && urlParams.toString()
+      ? baseNext + '?' + urlParams.toString()
+      : baseNext;
+    nextPageSlug = withQuery && !withQuery.startsWith('/') ? '/6a145c747bff10f9e9b453c8-preview/' + withQuery : withQuery;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      MVMT.init('6a145c747bff10f9e9b453c8')
+      const ctaButtons = document.querySelectorAll("[data-cta-button]");
+      ctaButtons.forEach((button) => {
+        button.href = nextPageSlug;
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          MVMT.track("CTA_CLICK", {
+            page: "thankyou",
+            page_type: "ThankYou",
+            page_url: window.location.href,
+          });
+          window.location.href = nextPageSlug;
+        });
+      });
+    });
+  }
+  
+}
+
+const route = async () => {
+  if (localStorage.getItem('sK_r')) return JSON.parse(localStorage.getItem('sK_r'));
+  const sessionId = MVMT.getSessionId() || localStorage.getItem("mvmt_session_id") || "";
+  const url = 'https://func-ab-test-events-staging-001.azurewebsites.net/api/checkRoute?id=6a145c747bff10f9e9b453c8&v=177972174985094&sessionId='+sessionId;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    localStorage.setItem('sK_r', JSON.stringify(data));
+    return data;
+  } catch (error) {
+    console.error('There was a problem with the fetch operation:', error);
+    throw error;
+  }
+}
+const nextPage = async () => {
+  let cr = await route();
+  if (!cr) throw new Error('Route not found');
+  const normalizePath = (rawPath) => {
+    if (!rawPath) return '';
+    try {
+      let p = String(rawPath);
+      p = p.split('?')[0].split('#')[0];
+      p = p.replace(/\/+$/, '');
+      p = p.replace(/\/index.html$/, '');
+      p = p.replace(/^\/+/, ''); p = p.replace(/^6a145c747bff10f9e9b453c8-preview\/?/, '');
+      return p;
+    } catch (e) {
+      console.error('Error normalizing path', e);
+      return '';
+    }
+  };
+  const pathname = window.location.pathname;
+  const cp = normalizePath(pathname || '/');
+  let nr = cr.find((r) => r.page === cp);
+  if (!nr) {
+    try {
+      localStorage.removeItem('sK_r');
+    } catch (e) {
+      // ignore storage errors
+    }
+    cr = await route();
+    if (!cr) return '';
+    nr = cr.find((r) => r.page === cp);
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!nr) return '';
+  const baseNext = pathname.endsWith("/index.html") ? nr.next + "/index.html" : nr.next || '';
+  const withQuery = urlParams && urlParams.toString()
+    ? baseNext + '?' + urlParams.toString()
+    : baseNext;
+  const absolute = withQuery && !withQuery.startsWith('/') ? '/6a145c747bff10f9e9b453c8-preview/' + withQuery : withQuery;
+  return absolute;
+}
+const urlParams = new URLSearchParams(window.location.search);
+handleUrlParams(urlParams);
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("click", (event) => {
+    const elementClasses = event.target.className;
+    const elementId = event.target.id;
+
+    const windowPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const elementPosition = event.clientX;
+    const elementTop = event.clientY;
+
+    MVMT.track("PAGE_CLICK", {
+      page: "thankyou",
+      page_type: "ThankYou",
+      page_url: window.location.href,
+      element_classes: elementClasses,
+      element_id: elementId,
+      window_position: windowPosition,
+      window_width: windowWidth,
+      window_height: windowHeight,
+      element_position: elementPosition,
+      element_top: elementTop,
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const elementsToHideSelectors = Array.from(params.entries()).reduce((selectors, [key, value]) => {
+      if (value === "n" || value === "none") {
+          selectors.push(`[data-url-param-${key}]`);
+      }
+      return selectors;
+  }, []);
+  if (elementsToHideSelectors.length) {
+      document.querySelectorAll(elementsToHideSelectors.join(",")).forEach(el => el.style.display = "none");
+  }
+  const topBanner = document.querySelector("[data-url-param-colorbanner]");
+  if (topBanner && params.has("colorbanner")) topBanner.style.backgroundColor = params.get("colorbanner") || "red";
+});
+
+const getGlobals = async () => {
+  const response = await fetch("https://stdigitalmvmtstaging001.blob.core.windows.net/globals/staging/default");
+  const data = await response.json();
+  return data;
+};
+
+document.addEventListener("DOMContentLoaded", async() => {
+
+  if (nextPageSlug === null || nextPageSlug.length === 0) {
+    nextPageSlug = await nextPage();
+    const ctaButtons = document.querySelectorAll("[data-cta-button]");
+    ctaButtons.forEach((button) => {
+      button.href = nextPageSlug;
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        MVMT.track("CTA_CLICK", {
+          page: "thankyou",
+          page_type: "ThankYou",
+          page_url: window.location.href,
+        });
+        window.location.href = nextPageSlug;
+      });
+    });
+  }
+    
+  const globals = await getGlobals();
+  const globalAttribute = "data-holder-global"
+  const globalElements = document.querySelectorAll(`[${globalAttribute}]`);
+  if (globalElements) {
+    globalElements.forEach((element) => {
+      const data = globals[element.getAttribute(globalAttribute)];
+      element.innerText = data.label;
+      if (data.type === "url") {
+        element.href = data.src;
+      }
+    })
+  }
+
+  // Track all elements with data-sparqcms-component-id on page view
+  const sparqcmsComponentElements = document.querySelectorAll("[data-sparqcms-component-id]");
+  const componentIds = [];
+  sparqcmsComponentElements.forEach(element => {
+    componentIds.push(element.getAttribute("data-sparqcms-component-id"));
+  });
+  
+  if (componentIds.length > 0) {
+      MVMT.track("PAGE_VIEW_COMPONENTS", {
+      page: "thankyou",
+      page_type: "ThankYou",
+      page_url: window.location.href,
+      component_ids: componentIds
+    });
+  }
+});
+  
+  </script>
+<script>
+  const offerName = 'Vi-Shift, Vi-Shift';
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    'event': 'pageView', 
+    'offer': 'Vi-Shift, Vi-Shift',
+    'customer_id':sessionStorage.getItem("customerId") || undefined,
+    'page':{
+      'type':'ThankYou',
+      'isReload':performance.getEntriesByType("navigation")[0].type === "reload",
+      'isExclude':false
+    },
+    'experiment':{
+      'id':undefined,
+      'name':undefined,
+      'variation':undefined
+    }
+  });
+</script>
+  <link rel="stylesheet" href="styles/thankyou.css" /><script>(function () {
+  var CLASS = 'is-preloading-page';
+  var SELECTOR = '[data-preloader]';
+  function createLoader() {
+    if (document.querySelector(SELECTOR)) return;
+    var style = document.createElement('style');
+    style.textContent = [
+      'html.is-preloading-page { overflow: hidden !important; }',
+      'html.is-preloading-page body { visibility: hidden !important; }',
+      '[data-preloader] { position: fixed !important; inset: 0 !important; background: #fff !important; display: flex; align-items: center; justify-content: center; z-index: 999999999 !important; }',
+      '[data-preloader] .loader { width: 48px; height: 48px; border: 5px solid #124c75; border-bottom-color: transparent; border-radius: 50%; animation: spin 1s linear infinite; }',
+      '@keyframes spin { to { transform: rotate(360deg); } }'
+    ].join(' ');
+    document.head.appendChild(style);
+    var loader = document.createElement('div');
+    loader.setAttribute('data-preloader', '');
+    loader.setAttribute('data-testid', 'page-preloader');
+    loader.innerHTML = '<div class="loader" data-testid="page-preloader-spinner"></div>';
+    document.documentElement.appendChild(loader);
+  }
+  createLoader();
+  document.documentElement.classList.add(CLASS);
+  var failSafeTimer = setTimeout(function () {
+    if (window.__hidePreloader) window.__hidePreloader();
+  }, 8000);
+  function onError() {
+    clearTimeout(failSafeTimer);
+    if (window.__hidePreloader) window.__hidePreloader();
+  }
+  window.addEventListener('error', onError, { once: true });
+  window.addEventListener('unhandledrejection', onError, { once: true });
+  window.__hidePreloader = function () {
+    clearTimeout(failSafeTimer);
+    window.removeEventListener('error', onError);
+    window.removeEventListener('unhandledrejection', onError);
+    var el = document.querySelector(SELECTOR);
+    if (!el) {
+      document.documentElement.classList.remove(CLASS);
+      return;
+    }
+    el.style.transition = 'opacity 0.25s ease';
+    requestAnimationFrame(function () {
+      el.style.opacity = '0';
+    });
+    setTimeout(function () {
+      el.remove();
+      document.documentElement.classList.remove(CLASS);
+    }, 250);
+  };
+})();</script></head><body><div><div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-d8btpc"><link rel="preload" as="image" href="assets/rival-dark-logo.png"/><img src="assets/rival-dark-logo.png" class="c-hi7sxz cjmgjye c-d7jzl0" loading="eager"/></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-kpj72t c-aop3ja c-b1u9qq c-d8btpc c-w48v6p c7g0fd5"><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c46dcou ch4am80 c-6s5fkd c1kzpo2 ct12nrm c-ymnxj c1vbd6p"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-kpkcet c-k1hfkf c-6s5fkd c1kzpo2 c6un93a"><img src="assets/Vector_w%5B2%5D.png" alt="Image header" class="c-i95srp civik4o c-d7jzl0 cgevsei c-aop3ja c-rp8xgd cw8coar" id="1" loading="lazy"/><span class="c-n92bdn c-m8oog cybkfeg cey0ojg c7e7cj7 cx26kob"><div bis_skin_checked="1">Thank you! Your order has been placed.</div></span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-3n63zq"><span class="c-n92bdn cey0ojg"><div style="text-align: left;" bis_skin_checked="1"><font face="Roboto, sans-serif">Your order numbers are:&nbsp;</font></div></span><span class="c-n92bdn cey0ojg cybjsex" data-holder="order_number">Order Number</span></div><span class="cmyac1f"><span style="color: rgb(255, 255, 255); font-family: Roboto, sans-serif; text-align: left;">We will pack your order and ship it to you right away.&nbsp;</span><span style="color: rgb(255, 255, 255); font-family: Roboto, sans-serif; text-align: left;">You will receive an email confirmation shortly at . Please print this page for your records.</span></span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3ddwue c-aop3ja c-b1u9qq c-d8btpc c-6s5fkd c1kzpo2 co6tonp c-w48v6p c7g0fd5"><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c1kzpo2 c-6s5fkd c7e7cj7"><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-535r6p c-mb5epe c-bq0yik cwtaoij c-evftdq c-aop3ja c3rgcpz cgpdm95"><span class="c-n92bdn cyblpdi"><br></span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c-5pdfmv c-535r6p c-k1hfkf c-1vttgr"><link rel="preload" as="image" href="assets/ups-nw2.png"/><img src="assets/ups-nw2.png" alt="Image header" class="c-i5zi48 cixl9lf c-d7jzl0 c-aop3ja c-6dxbsu" id="1" loading="eager"/><span class="cmyac1f c-mh0s78 c-6dxbsu c-ll22n4 cg1g8ho cw88udl c36k669 cg8zmdh c-jp5aks">This is an American-owned business that doesn't believe it should take 45 days to receive your product from China. <br>Orders are sent from our New Jersey warehouse via USPS,&nbsp;FedEx, UPS, or DHL for international customers depending on speed and efficiency of delivery. Product will be shipped&nbsp;within 48 business hours. Please allow between 5-7 days for standard delivery. You will be emailed a tracking link after your order is shipped. Thank you for your purchase!</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-a4oera cgq2iqq c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c-t3b5ha cnkzvdv c-1vttgr"><span class="c-n92bdn cybjsex cjtjl7g c-jp5aks">ORDER DETAILS</span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-hou3zo c3rgcpz c-crbsvi ctduf03 cgpdm95 c-kixfe9 c-xehlwv"><span class="c-n92bdn c-msh9t cybj5fe c69iwd8 c-jp5aks">Order Date</span><span class="c-n92bdn c69iwd8 cybjsex c-msh9t c-jp5aks" data-holder="order_date">Order Date</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c3rgcpz c-hou3zo c-crbsvi ctduf03 cgpdm95 c-kixfe9 c-xehlwv"><span class="c-n92bdn c-msh9t cybj5fe c69iwd8 c-jp5aks">Order Total</span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk c69iwd8 c-msh9t cybjsex c-jp5aks c-6s5fkd c1kzpo2 c-kixfe9 c-xempt3"><span class="c-n92bdn c69iwd8 cybjsex c-msh9t c-jp5aks" data-holder="total_excl_tax">$100.00</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c-5pdfmv c-a4oera c3rgcpz c-hou3zo c-crbsvi ctduf03 c7e7cj7 c-k1hfkf c-y3zxyn"><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-zfi062 c-ix2af8 ci7vm0l c7e7cj7 cx8yn36 c-cviekw cz36pm c-flikyx"><span class="c-n92bdn cybjsex cjtjl7g c-oaxxat"><div bis_skin_checked="1">SHIPPING ADDRESS</div></span><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">First Name</span><span class="c-n92bdn cybj5fe" data-first-name="">first_name</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Last Name</span><span class="c-n92bdn cybj5fe" data-last-name="">last_name</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Address</span><span class="c-n92bdn cybj5fe" data-line-1="">adress_line_1</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Address</span><span class="c-n92bdn cybj5fe" data-line-2="">adress_line_2</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">City</span><span class="c-n92bdn cybj5fe" data-city="">city</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">State</span><span class="c-n92bdn cybj5fe" data-select-states="">state</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Country</span><span class="c-n92bdn cybj5fe" data-select-countries="">country</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Zip Code</span><span class="c-n92bdn cybj5fe" data-zip-code="">zip_code</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-zfi062 c-ix2af8 ci7vm0l c7e7cj7 cx8yn36 cz36pm c-flikyx"><span class="c-n92bdn cybjsex cjtjl7g c-oaxxat"><div bis_skin_checked="1">BILLING ADDRESS</div></span><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Address</span><span class="c-n92bdn cybj5fe" data-billing-line-1="">adress_line_1</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Address</span><span class="c-n92bdn cybj5fe" data-billing-line-2="">adress_line_2</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">City</span><span class="c-n92bdn cybj5fe" data-billing-city="">city</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">State</span><span class="c-n92bdn cybj5fe" data-billing-select-states="">state</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Country</span><span class="c-n92bdn cybj5fe" data-billing-select-countries="">country</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-crbsvi c-b1u9qq cnuyd5u"><span class="c-n92bdn c-mvo7g">Zip Code</span><span class="c-n92bdn cybj5fe" data-billing-zip-code="">zip_code</span></div></div></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-a4oera c-5pdfmv cnkzvdv c-1vttgr"><span class="c-n92bdn cybjsex cjtjl7g c-jp5aks">ORDER SUMMARY</span><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-i9vfpo chittrk cb6kl2d" data-order-summary-items=""></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c3rgcpz c-hou3zo c-crbsvi ctduf03 cfvxcbd cjgm220 cgpdm95 c-kiuvg5 c-xehlwv"><span class="c-n92bdn c-msh9t cybjsex c69iwd8 c-jp5aks"><span style="color: rgb(51, 51, 51); font-size: 18px;">Shipping</span></span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk c69iwd8 c-msh9t cybjsex c-jp5aks c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2"><span class="c-n92bdn cybjsex c69iwd8 c-msh9t c-jp5aks" data-holder="shipping_excl_tax">$5.00</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c3rgcpz c-hou3zo c-crbsvi ctduf03 cgpdm95 c-kixfe9 c-xek5uz"><span class="c-n92bdn c-msh9t cybkfeg c-mh0s78 c-jp5aks"><span style="color: rgb(51, 51, 51); font-size: 18px;">Total</span></span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk c-msh9t c-24djvn cybkfeg c-jp5aks c-kixfe9 c-xempt3 c-6s5fkd c1kzpo2"><span class="c-n92bdn cybkfeg c-24djvn c-msh9t c-jp5aks" data-holder="total_incl_tax">$100.00</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-i9vfpo c4c5p2s"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aop3ja c-b1u9qq ctduf03 cnkzvdv"><span class="cmyac1f c-mv17x c-mh0s78 cg8ebdy">Charges on your statement will be processed for<br></span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk c-mvo7g c-mh0s78 c-jp5aks c-xempt3 c-6s5fkd c1kzpo2 c-kixfe9"><span class="c-n92bdn c-mh0s78 c-mv17x" data-holder="total_tax">$5.00</span></div></div><span class="c-n92bdn"><span style="color: rgb(102, 102, 102); font-size: 14px; text-align: left;">and will appear as TACTICAL SUPPLY 8668090004.</span></span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c-5pdfmv c-a4oera cwtaoij c6aj1rx c-k1hfkf cgql1d1 c-32nkxw"><img src="assets/model.png" alt="Image header" class="c-i6i0qj ciy6c5u c-d7jzl0 cmrhdah c-aop3ja c-6ddj7h cesih2s co9kv5w c2rxbkb cm16ee6" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c3aeqbs cgov3mu"><span class="c-n92bdn c-mb8mk cybkfeg cgn72v8 c8cprm c-jp2qmo"><div bis_skin_checked="1">We are here to help you.<br></div></span><span class="cmyac1f cgn6fvp c-jp5aks">If you have any questions or comments about your order or our products, you can reach us at +1 (888) 445-0641, we are available for you 24/7. You may also email us at support@rivalfootwear.com and one of our agents will get back to you within 24 hours.</span></div></div></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c-5pdfmv c-qf5jau c-sx1vvb c-d8btpc c-k1hfkf c-1vttgr c-raas7n cuhz3h5 c-2temw2"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c-5pdfmv c-3n63zq c-gg2k9s c-hou3zo c-k1hfkf c-1vttgr cnkzvdv ch4829w chkep0 c-raas7n cuhz3h5"><a class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-d8btpc c-1vttgr cuhz3h5"><span class="c-n92bdn c-mv17x cey0ojg c-mb6oog cel35e0 cfvwpbu cybkfeg">INFORMATION</span><span class="c-n92bdn cey0ojg">Referece</span><span class="c-n92bdn cey0ojg">Owner's Manual</span><span class="c-n92bdn cey0ojg">FAQs</span><a class="c-n92bdn cey0ojg" href="contact">Contact Us</a><a class="c-n92bdn cey0ojg" href="terms">Terms &amp; Conditions</a><a class="c-n92bdn cey0ojg" href="policies">Privacy Policy</a><span class="c-n92bdn cey0ojg">Returns</span><span class="c-n92bdn cey0ojg">Shipping</span><span class="c-n92bdn cey0ojg">Warranty</span></a><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-d8btpc c-1vttgr cuhz3h5"><span class="c-n92bdn c-mv17x cey0ojg c-mb6oog cel35e0 cfvwpbu cybkfeg">PAYMENT METHODS</span><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-3n63zq c1use2u cgsyyqn c-rp3tk5 cnkzvdv c-xehlwv c2u6ewc c-kixfe9 cc325bb cbuvhjn cm7onfs cc4qcav cnx1hid cxd973x cx5rxpp c-w43rah"><img src="assets/visa-xpress-icon.png" alt="Image header" class="c1tosw4 civxvtc cgrbkyk c-aop3ja ctduf03 cesfx4o c-3a7mjj c-abke99 cdrjzbc c5z6bwe" id="1" loading="lazy"/></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-d8btpc c-1vttgr cuhz3h5"><span class="c-n92bdn c-mv17x cey0ojg c-mb6oog cel35e0 cfvwpbu cybkfeg">GUARANTEE</span><span class="cmyac1f cey0ojg cjz719g c-voes68 c1iqke0">We offer 30-Days money-back<br>guarantee</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq"><img src="assets/logo-white.webp" alt="Image header" class="c1tmhd4 cgbqeev c-d7jzl0 c-3bdj99 c-wji9t" id="1" loading="lazy"/></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-gg2k9s c-xwyqlc cel35e0 c-d8btpc cgr4tye cti4v7"><span class="c-n92bdn cey0ojg">2025 Copyright © Rival Footwear. All Rights Reserved.</span></div></div></div></div><script src="https://stdigitalmvmtstaging001.blob.core.windows.net/libs/mvmt-latest.staging.js.min.js"></script><script src="scripts/thankyou.js"></script><script src="https://unpkg.com/just-validate@latest/dist/just-validate.production.min.js"></script>
+<script type="application/json" id="page-config">
+{
+  "campaignId": "40",
+  "pageType": "ThankYou",
+  "funnelId": "6a145c747bff10f9e9b453c8",
+  "locale": "US"
+}
+</script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        const cookiesBanner = document.querySelector("[data-cookie-banner]");
+        const cookieAcceptButton = document.querySelector("[data-cookie-accept-button]");
+        const cookieRejectButton = document.querySelector("[data-cookie-reject-button]");
+
+        if (!(cookiesBanner && cookieAcceptButton && cookieRejectButton)) return;
+
+        const cookieDependentScripts = [];
+        const cookiesAnswer = sessionStorage.getItem("cookiesAnswer");
+
+        if (cookiesAnswer === "accepted" || cookiesAnswer === "rejected") {
+          cookiesBanner.style.display = "none";
+          injectTrackingScripts();
+        } else {
+          cookiesBanner.style.display = "flex";
+        }
+
+        cookieAcceptButton.addEventListener("click", () => {
+          sessionStorage.setItem("cookiesAnswer", "accepted");
+          cookiesBanner.style.display = "none";
+          if (cookieDependentScripts.length > 0) injectTrackingScripts()
+        });
+
+        cookieRejectButton.addEventListener("click", () => {
+          sessionStorage.setItem("cookiesAnswer", "rejected");
+          cookiesBanner.style.display = "none";
+        });
+
+        function injectTrackingScripts() {
+          cookieDependentScripts.forEach((script) => {
+            if (script.src) {
+              const scriptElement = document.createElement("script");
+              scriptElement.src = script.src;
+              scriptElement.async = true;
+              document.head.appendChild(scriptElement);
+            } else if (script.text) {
+              const scriptElement = document.createElement("script")
+              scriptElement.innerHTML = script.text;
+              document.head.appendChild(scriptElement);
+            }
+          })
+        }
+      }, 500);
+    });
+  </script>
+  </body></html>

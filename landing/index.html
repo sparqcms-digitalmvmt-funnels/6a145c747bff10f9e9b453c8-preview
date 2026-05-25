@@ -1,0 +1,609 @@
+<!DOCTYPE html><html lang="en"><head><base href="/6a145c747bff10f9e9b453c8-preview/"><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><meta name="description" content=""><title>test</title><link rel="icon" href="favicon.ico" type="image/x-icon"><script>
+sessionStorage.setItem("test", true);
+
+const ALLOWED_AFFILIATE_IDS = [];
+
+let nextPageSlug = null;
+
+function handleUrlParams(params) {
+  const specialParams = ["p_dc", "p_tenbucksoff", "p_freeship", "p_freegift"];
+  const allowedDcValues = ["5", "10", "15", "20", "25"];
+  const currentAffId = params.get("affid") || sessionStorage.getItem("affid");
+  const discountsAllowed =
+    ALLOWED_AFFILIATE_IDS.length === 0 ||
+    (currentAffId !== null && ALLOWED_AFFILIATE_IDS.includes(currentAffId));
+  if (!discountsAllowed) {
+    specialParams.forEach((key) => sessionStorage.removeItem(key));
+  }
+  params.forEach((value, key) => {
+    const paramKey = `p_${key}`;
+    if (specialParams.includes(paramKey)) {
+      if (!discountsAllowed) return;
+      if (paramKey === "p_dc" && !allowedDcValues.includes(value)) return;
+      sessionStorage.setItem(paramKey, value);
+    } else {
+      sessionStorage.setItem(key, value);
+    }
+  });
+}
+
+if (localStorage.getItem('sK_r')) {
+  const cr = JSON.parse(localStorage.getItem('sK_r'));
+  const normalizePath = (rawPath) => {
+    if (!rawPath) return '';
+    try {
+      let p = String(rawPath);
+      p = p.split('?')[0].split('#')[0];
+      p = p.replace(/\/+$/, '');
+      p = p.replace(/\/index.html$/, '');
+      p = p.replace(/^\/+/, ''); p = p.replace(/^6a145c747bff10f9e9b453c8-preview\/?/, '');
+      return p;
+    } catch (e) {
+      console.error('Error normalizing path', e);
+      return '';
+    }
+  };
+  const pathname = window.location.pathname;
+  const cp = normalizePath(pathname || '/');
+  let nr = cr.find((r) => r.page === cp);
+  if (nr) {
+    const urlParams = new URLSearchParams(window.location.search);
+    const baseNext = pathname.endsWith("/index.html") ? nr.next + "/index.html" : nr.next || '';
+    const withQuery = urlParams && urlParams.toString()
+      ? baseNext + '?' + urlParams.toString()
+      : baseNext;
+    nextPageSlug = withQuery && !withQuery.startsWith('/') ? '/6a145c747bff10f9e9b453c8-preview/' + withQuery : withQuery;
+
+    document.addEventListener("DOMContentLoaded", () => {
+      MVMT.init('6a145c747bff10f9e9b453c8', 'LandingPage')
+      const ctaButtons = document.querySelectorAll("[data-cta-button]");
+      ctaButtons.forEach((button) => {
+        button.href = nextPageSlug;
+        button.addEventListener("click", (e) => {
+          e.preventDefault();
+          MVMT.track("CTA_CLICK", {
+            page: "landing",
+            page_type: "LandingPage",
+            page_url: window.location.href,
+          });
+          window.location.href = nextPageSlug;
+        });
+      });
+    });
+  }
+  
+}
+
+const route = async () => {
+  if (localStorage.getItem('sK_r')) return JSON.parse(localStorage.getItem('sK_r'));
+  const sessionId = MVMT.getSessionId() || localStorage.getItem("mvmt_session_id") || "";
+  const url = 'https://func-ab-test-events-staging-001.azurewebsites.net/api/checkRoute?id=6a145c747bff10f9e9b453c8&v=177972174985094&sessionId='+sessionId;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error('Network response was not ok');
+    const data = await response.json();
+    localStorage.setItem('sK_r', JSON.stringify(data));
+    return data;
+  } catch (error) {
+    console.error('There was a problem with the fetch operation:', error);
+    throw error;
+  }
+}
+const nextPage = async () => {
+  let cr = await route();
+  if (!cr) throw new Error('Route not found');
+  const normalizePath = (rawPath) => {
+    if (!rawPath) return '';
+    try {
+      let p = String(rawPath);
+      p = p.split('?')[0].split('#')[0];
+      p = p.replace(/\/+$/, '');
+      p = p.replace(/\/index.html$/, '');
+      p = p.replace(/^\/+/, ''); p = p.replace(/^6a145c747bff10f9e9b453c8-preview\/?/, '');
+      return p;
+    } catch (e) {
+      console.error('Error normalizing path', e);
+      return '';
+    }
+  };
+  const pathname = window.location.pathname;
+  const cp = normalizePath(pathname || '/');
+  let nr = cr.find((r) => r.page === cp);
+  if (!nr) {
+    try {
+      localStorage.removeItem('sK_r');
+    } catch (e) {
+      // ignore storage errors
+    }
+    cr = await route();
+    if (!cr) return '';
+    nr = cr.find((r) => r.page === cp);
+  }
+  const urlParams = new URLSearchParams(window.location.search);
+  if (!nr) return '';
+  const baseNext = pathname.endsWith("/index.html") ? nr.next + "/index.html" : nr.next || '';
+  const withQuery = urlParams && urlParams.toString()
+    ? baseNext + '?' + urlParams.toString()
+    : baseNext;
+  const absolute = withQuery && !withQuery.startsWith('/') ? '/6a145c747bff10f9e9b453c8-preview/' + withQuery : withQuery;
+  return absolute;
+}
+const urlParams = new URLSearchParams(window.location.search);
+handleUrlParams(urlParams);
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.addEventListener("click", (event) => {
+    const elementClasses = event.target.className;
+    const elementId = event.target.id;
+
+    const windowPosition = window.scrollY;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const elementPosition = event.clientX;
+    const elementTop = event.clientY;
+
+    MVMT.track("PAGE_CLICK", {
+      page: "landing",
+      page_type: "LandingPage",
+      page_url: window.location.href,
+      element_classes: elementClasses,
+      element_id: elementId,
+      window_position: windowPosition,
+      window_width: windowWidth,
+      window_height: windowHeight,
+      element_position: elementPosition,
+      element_top: elementTop,
+    });
+  });
+
+  const params = new URLSearchParams(window.location.search);
+  const elementsToHideSelectors = Array.from(params.entries()).reduce((selectors, [key, value]) => {
+      if (value === "n" || value === "none") {
+          selectors.push(`[data-url-param-${key}]`);
+      }
+      return selectors;
+  }, []);
+  if (elementsToHideSelectors.length) {
+      document.querySelectorAll(elementsToHideSelectors.join(",")).forEach(el => el.style.display = "none");
+  }
+  const topBanner = document.querySelector("[data-url-param-colorbanner]");
+  if (topBanner && params.has("colorbanner")) topBanner.style.backgroundColor = params.get("colorbanner") || "red";
+});
+
+const getGlobals = async () => {
+  const response = await fetch("https://stdigitalmvmtstaging001.blob.core.windows.net/globals/staging/default");
+  const data = await response.json();
+  return data;
+};
+
+document.addEventListener("DOMContentLoaded", async() => {
+
+  if (nextPageSlug === null || nextPageSlug.length === 0) {
+    nextPageSlug = await nextPage();
+    const ctaButtons = document.querySelectorAll("[data-cta-button]");
+    ctaButtons.forEach((button) => {
+      button.href = nextPageSlug;
+      button.addEventListener("click", (e) => {
+        e.preventDefault();
+        MVMT.track("CTA_CLICK", {
+          page: "landing",
+          page_type: "LandingPage",
+          page_url: window.location.href,
+        });
+        window.location.href = nextPageSlug;
+      });
+    });
+  }
+    
+  const globals = await getGlobals();
+  const globalAttribute = "data-holder-global"
+  const globalElements = document.querySelectorAll(`[${globalAttribute}]`);
+  if (globalElements) {
+    globalElements.forEach((element) => {
+      const data = globals[element.getAttribute(globalAttribute)];
+      element.innerText = data.label;
+      if (data.type === "url") {
+        element.href = data.src;
+      }
+    })
+  }
+
+  // Track all elements with data-sparqcms-component-id on page view
+  const sparqcmsComponentElements = document.querySelectorAll("[data-sparqcms-component-id]");
+  const componentIds = [];
+  sparqcmsComponentElements.forEach(element => {
+    componentIds.push(element.getAttribute("data-sparqcms-component-id"));
+  });
+  
+  if (componentIds.length > 0) {
+      MVMT.track("PAGE_VIEW_COMPONENTS", {
+      page: "landing",
+      page_type: "LandingPage",
+      page_url: window.location.href,
+      component_ids: componentIds
+    });
+  }
+});
+  
+  </script>
+<script>
+  const offerName = 'Vi-Shift, Vi-Shift';
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    'event': 'pageView', 
+    'offer': 'Vi-Shift, Vi-Shift',
+    'customer_id':sessionStorage.getItem("customerId") || undefined,
+    'page':{
+      'type':'LandingPage',
+      'isReload':performance.getEntriesByType("navigation")[0].type === "reload",
+      'isExclude':false
+    },
+    'experiment':{
+      'id':undefined,
+      'name':undefined,
+      'variation':undefined
+    }
+  });
+</script>
+  <link rel="stylesheet" href="styles/landing.css" /><style>@layer imported{.slider {
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.4);
+}
+
+.companies-list {
+    --width: 120px;
+    --height: 76px;
+}
+
+.companies-item {
+  width: var(--width);
+  height: var(--height);
+}
+
+@media only screen and (max-width: 640px) {
+  .slider {
+    overflow: hidden;
+  }
+  
+  .companies-list {
+    min-width: calc(var(--width) * 7);
+  }
+  
+  .companies-item {
+    position: absolute;
+    left: 100%;
+    animation-name: autoRun;
+    animation-timing-function: linear;
+    animation-duration: 10s;
+    animation-iteration-count: infinite;
+  }
+  
+  .companies-item:nth-child(1) {
+    animation-delay: calc(10s / 7 * (7 - 1) * -1);
+  }
+  .companies-item:nth-child(2) {
+    animation-delay: calc(10s / 7 * (7 - 2) * -1);
+  }
+  .companies-item:nth-child(3) {
+    animation-delay: calc(10s / 7 * (7 - 3) * -1);
+  }
+  .companies-item:nth-child(4) {
+    animation-delay: calc(10s / 7 * (7 - 4) * -1);
+  }
+  .companies-item:nth-child(5) {
+    animation-delay: calc(10s / 7 * (7 - 5) * -1);
+  }
+  .companies-item:nth-child(6) {
+    animation-delay: calc(10s / 7 * (7 - 6) * -1);
+  }
+  .companies-item:nth-child(7) {
+    animation-delay: calc(10s / 7 * (7 - 7) * -1);
+  }
+}
+
+@keyframes autoRun{
+to {
+    left: calc(-1 * var(--width));
+  }
+}}</style><style>@layer imported{.cta-btn {
+  box-shadow: 2px 4px rgba(0, 0, 0, 0.24);
+}}</style><style>@layer imported{.transition-all {
+  transition: all ease 500ms
+}}</style></head><body><div><div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera cey0ojg c-aop3ja c-crbsvi ctduf03 c-b1szro"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s cjti641 c-i9vfpo c-sx1vvb c-d8btpc"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-3n63zq c-aop3ja c-crbsvi c-b1u9qq ctduf03 cb4o0kw c-y3dtua"><img src="assets/megaphone-img.png" class="c-i6japl ciy894f c-d7jzl0 c-75arrj c7gfwck cxb9qun c-tv8e1c" loading="lazy"/><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c-5pdfmv c-3n63zq c-mbvm3 cybkfeg c-aop3ja c-b1u9qq c-crbsvi ctduf03 c2nwcxb c-jp5xkb"><span class="c-n92bdn c-d8btpc">New Year Sale</span><span class="c-n92bdn c8cprm">Limited-Time Offer, While Supplies Last!</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c67nlmx cmpa6x1 cnvd1uz ccjwpg7 cuo0vhx c-cgrdu4 c-468i9h cfr8k07" data-cta-button=""><span class="c-n92bdn c-mdsko cybjsex cduz338">ORDER NOW</span></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s czdvyn4 c-i9vfpo c-d8btpc c-aojzn2 c-b1p5ui"><span class="c-n92bdn cybkfeg c-mruaa">30 Days Money Back Guarantee&nbsp;</span></div></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-ic30jh c7l9c6s c-3n4ynq c-d8btpc c-kbr2ya c7e7cj7 cfe1uxw"><img src="assets/image.png?height=626&amp;width=313" alt="Image header" class="c-hi7sxz cjmgjye c-d7jzl0 c-o6hhdg c28yfc5 cfr8k07 ctlu5ap" id="1" loading="lazy"/><img src="assets/vital-logo.webp" alt="Image header" class="c-i5x6l8 cjmgjye c-d7jzl0 c7hlt2a c-ehlcw8 c-bbocpe" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-hou3zo c7l9c6s cth496u cz02kxo c4hp3xu cy09qpb"><span class="c-mv17x c-468i9h">VITAL HEALTH RING</span><a class="c-mv17x c-468i9h" href="#features">FEATURES</a><a class="c-mv17x c-468i9h" href="#reviews">REVIEWS</a><button class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c67nlmx c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cey0ojg cn6jn3a c-roa6v" data-cta-button=""><span class="">Buy Here</span></button></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c-d8btpc c7e7cj7 c-6s5fkd c1kzpo2 c-xempt3"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-d8btpc cdmzfcp"><span class="c-n92bdn cybkfeg c-lq625 crjhtl4 c-jolhzf c-voes68">Vital health Ring Shocks Experts - Could This Be the&nbsp;</span><span class="c-taweo c-lq625 cz02kxo c-n92bdn crjhtl4 c-jom4yy cjz719g">Features of Health Tracking?</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c-5pdfmv c-j1sozv c-d8btpc c49eq3z c-xempt3 c3ov9m3 c-v64oll"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix2fm3 c-vlvq64 c-2ggork c7e7cj7 cqclhmw c3izygf cgx1jrw c9dyqft"><span class="c-mdsko czcfdf0 c8cprm">Want to Live a healthier, longer life without relying on bulky gadgets and constant doctor appointments? Keeping up with your health shouldn´t feel like a chore, but most gadgets make it feel that way. The Vital Health Ring changes everything. This lightweight, waterproof ring monitors your health 24/7. Giving you real-time data so you can make informed choices and live better!</span><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnvgvs5 cck0jdd c-crbsvi ctduf03 c-1vttgr ctun93a c-y3dtua c-6s5fkd c1kzpo2 c-ohjtqh"><img src="assets/check-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-taweo c-mdsko c-wdpes cxxai8f cm18px6">Tracks heart rate and stress <br>24/7 for better health insights.</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-aop3ja cck0jdd c-crbsvi ctduf03 c-1vttgr c-6s5fkd c1kzpo2 c-y3dtua c-ohjtqh"><img src="assets/check-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-taweo c-mdsko c-wdpes cxxai8f cm18px6">Monitors sleep patterns to<br>improve rest and boost energy.</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-aop3ja cck0jdd c-crbsvi ctduf03 c-6s5fkd c1kzpo2 c-y3dtua c-ohjtqh"><img src="assets/check-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-taweo c-mdsko c-wdpes cxxai8f cm18px6">Lightweight waterproof,and <br>comfortable for all-day wear.</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-6s5fkd c1kzpo2 c-y3dtua c-ohjtqh"><img src="assets/check-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-taweo c-mdsko c-wdpes cxxai8f cm18px6">Instantly displays real-time data <br>on fitness and wellness.</span></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c7l9c6s c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2"><link rel="preload" as="image" href="assets/hero-image.png"/><img src="assets/hero-image.png" alt="Image header" class="c2q4nwf ch9aw5u c-d7jzl0 cv4ctcs c332511 clm0z3o c-45wa6o cv392br c-jb2r6v c-7ybiec" id="1" loading="eager" fetchpriority="high"/></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-aop3ja ctduf03 c-crbsvi c-b1u9qq cbuk2vp ckyhy7i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c7e7cj7 c2u6ewc"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cz02kxo cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 c-x2elfo c-m9yni cybjsex" data-cta-button=""><span class="c-n92bdn c-d8btpc">Unlock&nbsp;</span><span class="c-n92bdn c-d8btpc">50%</span><span class="c-n92bdn c-d8btpc">&nbsp;Discount</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cnci0qd" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp c-b1u9qq c-crbsvi ctduf03 c-mvo7g cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-crbsvi ctduf03 c-b1u9qq c-aop3ja c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0 c-oz46bj">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c7l9c6s c-3n4ynq c-6s5fkd c1kzpo2"><div class="c-lc9846 c-o6hhdg c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk c-6s5fkd c1kzpo2 c-kixfe9 c-xempt3 c6yq6k4 c-ehlcw8"><span class="c-n92bdn c-d8btpc">As Seen On</span></div><div class="slider c-lc9846 c-oaxxat cevei02 c-rri4mx c-sx1vvb c7l9c6s cf1ehsn c-3n4ynq c-6khkbl c-jdpsty c-sesp3e cik6sgi c-l5ie0f c-iwza5u c-mb6oog cfvw2cb c-7almvf c-o5qdru cb3kfe6 c-d8btpc co7bnzc c7e7cj7 c50cs8v cxcxrm9 c-gosav8 cn0j7ap cy3up1g cq341an c-rf085e cw9bka0"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-468i9h cfr8k07"><span class="ccw00ri cx1ms2y">As Seen On</span></div><div class="companies-list c-lc9846 c-oaxxat cevei02 c-rri4mx c-hou3zo c7l9c6s c5247qp cik6sgi c-jcm7n8 c-sdp3wo c-l5ie0f cnkzvdv c-tqu0hl c7e7cj7 c-drxck4 c-xelfu1 c-kiw5f7"><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-evftdq cnkzvdv csns6cz cfmkgeo"><img src="assets/abc-logo.webp" alt="Image header" class="c-hi7sxz ciusx6p c-d7jzl0 cmpwb1e cx8yn36 c-ego9me" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-evftdq csns6cz cfmkgeo"><img src="assets/cbs-logo.webp" alt="Image header" class="c-i9vfpo cjmgjye c-d7jzl0 cmpwb1e c6yq6k4 c7e7cj7" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-crbsvi c-b1u9qq ctduf03 c-evftdq csns6cz cfmkgeo"><img src="assets/usa-today-logo.webp" alt="Image header" class="c-hi7sxz ciusx6p c-d7jzl0 cmpwb1e c6yq6k4 c-bmjr1v" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-crbsvi ctduf03 c-b1u9qq c-evftdq csns6cz cfmkgeo"><img src="assets/today-logo.webp" alt="Image header" class="c-ix0k4w cjmgjye c-d7jzl0 cmpwb1e c6yq6k4 cn0j7ap" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-evftdq cfms42u csns6cz cfmkgeo"><img src="assets/digital-journal-logo.webp" alt="Image header" class="c-i9vfpo cjmgjye c-d7jzl0 cmpwb1e c6yq6k4 c7e7cj7" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-evftdq csns6cz cfmkgeo"><img src="assets/fox-news-logo.webp" alt="Image header" class="c-hi7sxz c-qvt7of c-d7jzl0 cmpwb1e c6yq6k4 cx8yn36 c-b11y76" id="1" loading="lazy"/></div><div class="companies-item c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq c-46t6vk c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-evftdq cfms42u csns6cz cfmkgeo"><img src="assets/nbc-logo.webp" alt="Image header" class="c-hi7sxz ciusx6p c-d7jzl0 cmpwb1e c6yq6k4 cx8yn36 c-ehlcw8" id="1" loading="lazy"/></div></div></div></div><div id="features" class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c-d8btpc"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c-5pdfmv"><span class="c-taweo cy87lb c-n92bdn c-i9vfpo c-9n9du0">Why Everyone's Talking About the Vital Health Ring:&nbsp;</span><span class="cy87lb c-n92bdn c-taweo c-i9vfpo c-jo49c6 c-pxb7sl c-o5s3sm c-kd3imu c-panc6b cq341an cdmzfcp">The Ultimate Health Tracker!</span><span class="c-n92bdn c-rgjo0h c-i9vfpo c-obno21">The Vital Health Ring combines advanced technology with a sleek design to give you real-time&nbsp;</span><span class="c-rgjo0h c-n92bdn c-i9vfpo c-joo1xj">insigths into your health, empowering you to make better choices every day.</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq cb57t69 c49eq3z c2u6ewc c-raas7n cc325bb cuhz3h5 c3ov9m3 ccv262i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-crbsvi ctduf03 c-vlvq64 cqclhmw"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-orcywl cilu68l"><img src="assets/heart-with-pulse-icon.webp" alt="Image header" class="c-d7jzl0 c-i8qh31 civxvtc" id="1" loading="lazy"/><span class="cotk2a9 c-taweo c-uau1d6 c-fi10o0 c-jp3dm7">Track Your Health<br>Anytime, Anywhere</span></div><span class="">The Vital Health Ring monitors key metrics<br>Like heart rate, stress levels, and blood<br>oxygen 24/7, so you always know how your<br>body is doing, no matter where you are.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx cpf4zja c-orcywl c7l9c6s c-fkrzmt cilu68l"><img src="assets/wake-up-icon.webp" alt="Image header" class="c-i8qh31 civxvtc c-d7jzl0" id="1" loading="lazy"/><span class="c-taweo c-mdsko cou37w3 cimxrfb c-fkrzmt c-jp3dm7">Wake Up Energized Every<br>Morning</span></div><span class="">With precise sleep tracking, the ring helps<br>you understand your sleep patterns and<br>optimize rest, so you wake up feeling<br>refreshed and ready for the day.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx cpf4zja c-orcywl c7l9c6s c-fkrzmt cilu68l"><img src="assets/mental-health-icon.webp" alt="Image header" class="c-i8qh31 civxvtc c-d7jzl0" id="1" loading="lazy"/><span class="cou37w3 c-taweo c-mdsko cimxrfb c-jp3dm7">Stay Ahead of Stress</span></div><span class="">By monitoring Heart rate variability, this<br>smart ring identifies stress triggers and<br>helps you take action before sredd takes<br>over, keeping you calm and focused.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c7l9c6s c-vlvq6z cqclhm1"><img src="assets/features-img.webp" alt="Image header" class="c-pw0arc chv7hgb c-d7jzl0" id="1" loading="lazy"/></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-crbsvi ctduf03 c-vlvq59 cqclhnr"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-orcywl c7l9c6s cilu68l"><img src="assets/biceps-icon.webp" alt="Image header" class="c-i8qh31 civxvtc c-d7jzl0" id="1" loading="lazy"/><span class="cimxrfb c-taweo c-mdsko cotk2a9 czcdggf">Achieve your Fitness Goals<br>Faster</span></div><span class="">Track your activity levels, calories burned,<br>anda distance covered during workouts in<br>real time, helping you stay motivated and<br>meet your fitness targets more effectively.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx cpf4zja c-orcywl c7l9c6s c-fkrzmt cilu68l"><img src="assets/winner-icon.webp" alt="Image header" class="c-i8qh31 civxvtc c-d7jzl0" id="1" loading="lazy"/><span class="cimxrfb c-taweo c-mdsko cotk2a9 c-jp3dm7">Effortless All-Day Comfort</span></div><span class="">Lightweight, waterproof, and designed for<br>all-day wear, the Vital Health Ring<br>seamlessly fits into your routine, providing<br>accurate data without any discomfort or<br>fuss.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx cpf4zja c-orcywl c7l9c6s cilu68l c-ycda8e"><img src="assets/medical-doctor-icon.webp" alt="Image header" class="c-i8qh31 civxvtc c-d7jzl0" id="1" loading="lazy"/><span class="cimxrfb c-taweo c-mdsko cotk2a9 czcdggf">Share Data with Your Doctor</span></div><span class="">Keep your healthcare providers updated<br>with accurate data in order to create the<br>best, personalized healthcare plan.</span><img src="assets/divider.svg" alt="Image header" class="c-hi7sxz c-85nfip c-d7jzl0 c-jdpsty cpf4zja c-468i9h cfr8k07" id="1" loading="lazy"/></div></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-aop3ja ctduf03 c-crbsvi c-b1u9qq cbuk2vp ckyhy7i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c-i9vfpo c7e7cj7 c2u6ewc"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cz02kxo cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 c-x2elfo c-m9yni cybjsex" data-cta-button=""><span class="c-n92bdn c-d8btpc">Order Now &amp; Save&nbsp;</span><span class="c-n92bdn c-d8btpc">50%</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cpylk12" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp c-b1u9qq c-crbsvi ctduf03 c-mvo7g cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-crbsvi ctduf03 c-b1u9qq c-aop3ja c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0 c-oz46bj">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c-3n4ynq c-d8btpc"><span class="c-n92bdn c-taweo c-lsq09 c-lhaqr8">Your Wellness Made Simple</span><span class="c-n92bdn">Experience the next level of health tracking with a sleek, easy-to-use design that keeps you connect to your well-being.</span><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 c-6s5fkd c1kzpo2 c-raas7n cuhz3h5 cqclhm1"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix30dj c-vlvq64 c7e7cj7 cqclhmw c9dyo7q"><span class="cotk2a9 c-taweo c-uau1d6 c-yqncqb">Wake Up Energized Every Day</span><span class="">Track your sleep patterns, including REM, to improve your neghtly rest. Wake up refreshed, energized, and ready to take on the day.</span></div><img src="assets/key-point-section-wake-up-img.webp" alt="Image header" class="c2xm6av c-91yqvx c-d7jzl0 cv4ctcs cqclhm1" id="1" loading="lazy"/></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 c-6s5fkd c1kzpo2"><img src="assets/key-point-section-fitness-goals-img.webp" alt="Image header" class="c2xm6av c-91yqvx c-d7jzl0 cv4ctcs" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix30dj c7e7cj7 c9dyo7q"><span class="c-taweo cotk2a9 c-mdsko c-yqncqb">Reach Your Fitness Goals Faster</span><span class="">Monitor your heart rate, calories, and activity levels in real time. Boost your performance, avoid injuries and achieve your fitness goals with easy.</span></div></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 c-6s5fkd c1kzpo2"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix30dj c-vlvq64 c7e7cj7 cqclhmw c9dyo7q"><span class="c-taweo c-mdsko cotk2a9 c-jp23n5">Keep Stress in Check</span><span class="">Track your stress levels by monitoring heart rate variability. Learn your triggers and use proven techniques to improve your mental health and well- being.</span></div><img src="assets/key-point-section-stress.webp" alt="Image header" class="c2bu0h1 c-91yqvx c-d7jzl0 cv4ctcs" id="1" loading="lazy"/></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 c-6s5fkd c1kzpo2"><img src="assets/key-point-section-body-cicle-img.webp" alt="Image header" class="c2bu0h1 c-91yqvx c-d7jzl0 cv4ctcs" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix30dj c7e7cj7 c9dyo7q"><span class="c-taweo c-mdsko cotk2a9 c-yqncqb">Understand Your Body´s Cycles</span><span class="">For women, easily track menstrual cycles, ovulation, and reproductive health to stay comfortable and in control, minimizing paing and discomfort.</span></div></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 c-6s5fkd c1kzpo2"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-ix30dj c-vlvq64 c7e7cj7 cqclhmw c9dyo7q"><span class="c-taweo c-mdsko cotk2a9 c-jp23n5">Share Your Data with Confidence</span><span class="">Easily share your health data with your doctor to help with diagnosis, treatments, and preventative care- ensuring you get the best prossible care.</span></div><img src="assets/key-point-section-data-confidence-img.webp" alt="Image header" class="c2bu0h1 c-91yqvx c-d7jzl0 cv4ctcs" id="1" loading="lazy"/></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c7l9c6s c-d8btpc"><span class="cybkfeg c-uatedn">"A Cardiologist's Go-To Health Tracker"</span><img src="assets/five-strars-icon.webp" alt="Image header" class="c-i5x6l8 c6hn9im c-d7jzl0 ct5tvbs c-v0br6m c-40syio cv4ctcs" id="1" loading="lazy"/><span class="c-n92bdn">"As a cardiologist, I often recommend th Vital Health Ring to my patients for tracking heart<br>rate and stress levels. It provides real-time insights that help people take control of their<br>health and improve their overall wellness."</span><img src="assets/dr-james-img.webp" alt="Image header" class="c-i70rry cixnl4f c-d7jzl0 c-v0br6m c-6khkbl" id="1" loading="lazy"/><span class="cybkfeg">DR. JAMES W.</span><span class="">Toronto, Canada - Cardiologist</span></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c7l9c6s ci72iim cun148d c-d8btpc"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-evftdq c7l9c6s cf2dil2 can4bbg cogmj4t c-aop3ja cekcti9 c-2hf5cf cu8uuf8 c-b1u9qq ctduf03 c-crbsvi c4l58rh c332511 cn0j7ap"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-i9vfpo c-evftdq c7l9c6s cxgbgh8 c-3n4ynq"><span class="cybkfeg c-y1gx4 c-n92bdn c-jolhzf">An Offer You Can´t Miss!</span><span class="c-n92bdn cz02kxo ctvpbvu c8pn6a">Thousands have already transformed their health with the Vital Health Ring. Now it's your turn to take control of your well-being with this powerful, easy-to-use device.&nbsp;And for a limited time, you can get it at 50% off!</span><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s cb4o0kw c-aojzn2 c-b1p5ui c49eq3z"><span class="cotk2a9 cybkfeg c-uau1d6 c-mfh6h9 cfm9p81">Limited Time Offer!</span><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c5v55s7 c-aop3ja c-b1u9qq c-crbsvi ctduf03"><span class="cegzxet cybkfeg c-eocicr c-2bvdny" data-timer="">00:59:55</span></div></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-evftdq c7l9c6s c7y4ib6 cixt0c0 cnkzvdv c-1vttgr c-6s5fkd c1kzpo2 c6tnw1b"><img src="assets/limites-time-offer-img.webp" alt="Image header" class="cujgfyk cjmgjye c-d7jzl0 c7j96ud c-9z5cun" id="1" loading="lazy"/><img src="assets/100-guaranteed-badge.webp" alt="Image header" class="cujgfyk cjmgjye c-d7jzl0 c7j96ud c-9z5cun" id="1" loading="lazy"/></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-dhvs38 c-i9vfpo cun148d c7l9c6s c2u6ewc cq341an"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx cq341an c-panc6b cdmzfcp"><span class="c-n92bdn cybkfeg c-uau1d6 cthdpdc c-panc6b cq341an">Now at the lowest price of the season - up to 50% OFF.</span></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx cpswzdc c-aop3ja c-b1u9qq c1kzpo2 cdmzfcp clna6dh"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-gx6u2y c-orcywl c-crbsvi c-b1u9qq c-aop3ja c1kzpo2 c-4twv"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-crbsvi c-b1u9qq c-6s5fkd c-ohjtqh cxizwz6"><img src="assets/green-checkbox-2-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-fi10o0 cxg88up">Fast shipping</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnvgvs5 c-b1u9qq c-crbsvi c7e7cj7 c-ohjtqh cxizwz6"><img src="assets/green-checkbox-2-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-fi10o0 cxg88up">30-Day 100% Money-Back Guarantee</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnvgvs5 c-b1u9qq c-crbsvi c-ohjtqh cxizwz6"><img src="assets/green-checkbox-2-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-fi10o0 cxg88up">Amazing Customer Support</span></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnvgvs5 c-crbsvi c1kzpo2 c-ohjtqh cxizwz6"><img src="assets/green-checkbox-2-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/><span class="c-fi10o0 cxg88up ciz8hx8 ch5xfw4 c-flfkpj">Extra discount when ordering more than one</span></div></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-aop3ja ctduf03 c-crbsvi c-b1u9qq cbuk2vp ckyhy7i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c-dhvs38 c7e7cj7 c2u6ewc"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cz02kxo cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 c-x2elfo c-m9yni cybjsex" data-cta-button=""><span class="c-n92bdn c-d8btpc c-jp4nl9">Unlock&nbsp;</span><span class="c-n92bdn c-d8btpc">50%</span><span class="c-n92bdn c-d8btpc">&nbsp;Discount</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cnci0qd" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp c-b1u9qq c-crbsvi ctduf03 c-mvo7g c-dhvs38 cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-dhvs38 c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0 cgevsei">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-dhvs38 c-crbsvi ctduf03 c-b1u9qq c-aop3ja c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0 c-oz46bj">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div></div></div></div><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-b1u9qq c-evftdq cb4o0kw c-aop3ja c-d8btpc cjqhchq ctwsx2k c-eok4tn c-y3xmfn c-raas7n cc7eiwg c-d6dh92"><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-3n63zq cb4121u c6imoy6 c-468i9h cfr8k07 relative"><img src="assets/30-days-guarantee.png" class="c-hi7sxz cjmgjye c-d7jzl0" loading="lazy"/><img src="assets/guarantee-background.png" width="331" height="497" alt="" style='position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;z-index:-1;' loading="eager" /></div><img src="assets/30-days-guarantee.png" class="c-hi7sxz cjmgjye c-d7jzl0 c-o6hhdg c6yq6k4 cg6750i c-ehlcw8" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-5pdfmv c-ix2h3h cg22cm1 c-dyrr88 ctpekst c7e7cj7 c-1vttgr cuhz3h5 c37snoh c9e01w9"><span class="c-oaxxat c7l9c6s c-orcywl cybkfeg c-eocicr cey0ojg cjz719g c6tnw1b cvuhgzw c-voes68 cc325bb c-flgqz4 c-o5vaq9 c-he2llt">30-Day Money Back Guarantee</span><span class="c-oaxxat c-orcywl c7l9c6s cey0ojg cjz719g c-voes68 chmz2ab">We're cofident you will love with the Vital Health Ring Just like our 2000+ customers. However, in the unlikely case you are not satisfied, just return the package within 30 days for a refund, no questions asked!</span><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-aop3ja ctduf03 c-crbsvi c-b1u9qq cbuk2vp ckyhy7i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s cnvgvs5 cjqhchq c-crbsvi c7e7cj7 c2u6ewc"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l cunjefk ccdkvsh cgt2htg cwzv3pd cz02kxo cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 c-x2elfo c-m9yni cybjsex" data-cta-button=""><span class="c-n92bdn c-d8btpc">Save&nbsp;</span><span class="c-n92bdn c-d8btpc">50%</span><span class="c-n92bdn c-d8btpc">&nbsp;Now</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cnci0qd" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp c-b1u9qq c-crbsvi ctduf03 c-mvo7g cjqhchq c-gs8i2g cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s cjqhchq c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s cjqhchq c-crbsvi ctduf03 c-b1u9qq c-aop3ja c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0 c-oz46bj">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div></div></div><div id="reviews" class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c-d8btpc c7l9c6s c-evftdq c-kiwseq c-panc6b cq341an"><span class="c-n92bdn cost8u3 c-eocicr cybkfeg c-jolhzf">From Better Sleep to Less Stress: Discover How the Vital Health Ring Transforms Lives!</span><span class="c-n92bdn cybkfeg c-senjse c-joo1xj">Verified Buyers Latest Reviews</span><div class="c-lc9846 c-oaxxat cevei02 czb3o6e c-evftdq cb447zj c-ix174f cgt2htg cwzv3pd c-xi84yw c4b23w2 c-6s5fkd c1kzpo2 c-jq7kne c-73ty75"><img src="assets/customer-review-maria-img.webp" alt="Image header" class="csof1td cjmgjye c-d7jzl0 c-9sljs7 cgzjvxm c-g5papx c28pfq1 c-xempt3 c-2dppsr c-vtex09 c-gwxwyq" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c8pono c-xempt3 c-6s5fkd c1kzpo2 c-e4pwfg c9dzy6s cbuk2vp cdmzfcp"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-crbsvi c-b1u9qq c-xempt3 cc58ux6"><span class="c-mdsko">@MariaFitness&nbsp;</span><img src="assets/green-checkbox-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl" id="1" loading="lazy"/></div><span class="c-mwb6z">Verified Buyer</span><img src="assets/five-strars-icon.webp" alt="Image header" class="c-i6gz6l ciw07cc c-d7jzl0 c-v0br6m c-img9rw c6xm55r cfdyeng" id="1" loading="lazy"/><span class="cry5ewc c-pjkjiq ctvn7y0">"This ring has seriously helped me get my health on track. I can keep tabs on my heart rate and stress, and the best part is I don't even feel like I'm wearing it. And looks stylish! Worth every penny!"</span></div></div><div class="c-lc9846 c-oaxxat cevei02 czb3o6e c-evftdq cb447zj c-ix174f c-6s5fkd c1kzpo2 c4b23w2 cc325bb"><img src="assets/customer-review-dave-img.webp" alt="Image header" class="csof1td cjmgjye c-d7jzl0 c-9sljs7 cgzjvxm c28pfq1 c-g5r7oi c-2dppsr c-vvm3dp c-gwxwyq" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-gvy9y9 c8pono c-xempt3 c-6s5fkd c1kzpo2 c-e4pwfg c9dzy6s cbuk2vp"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-crbsvi c7l9c6s c-b1u9qq c-xempt3"><span class="c-chr53o c-mdsko">@DaveB_PNW</span><img src="assets/green-checkbox-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl c-xzb5ii" id="1" loading="lazy"/></div><span class="c-mwb6z">Verified Buyer</span><img src="assets/five-strars-icon.webp" alt="Image header" class="c-i6gz6l ciw07cc c-d7jzl0 c-v0br6m c-img9rw cv4ctcs cflepu9 c-h01hbz c6xm55r" id="1" loading="lazy"/><span class="cry5ewc c-pjkjiq cg7u73q">"I love how the Vital Health Ring lets me track my heart rate and stress throughout the day. It's really helped me understand my triggers and improve my overall mental health."</span></div></div><div class="c-lc9846 c-oaxxat cevei02 czb3o6e c-evftdq cb447zj c-ix174f c-6s5fkd c1kzpo2 c4b23w2"><img src="assets/customer-review-jessie.webp" alt="Image header" class="csof1td cjmgjye c-d7jzl0 c-9sljs7 cgzjvxm c28pfq1 c-g5r7oi c-2dppsr c-vtex09 c-gwxwyq" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c8pono c-xempt3 c-6s5fkd c1kzpo2 c-e4pwfg c9dzy6s cbuk2vp"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-b1u9qq c-crbsvi c-xempt3"><span class="c-chr53o c-mdsko">@Jessie_P</span><img src="assets/green-checkbox-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl c-xzb5ii" id="1" loading="lazy"/></div><span class="c-mwb6z">Verified Buyer</span><img src="assets/five-strars-icon.webp" alt="Image header" class="c-i6gz6l ciw07cc c-d7jzl0 c-v0br6m c-img9rw c6xm55r" id="1" loading="lazy"/><span class="cry5ewc c-pjkjiq ctvn7y0">"As Someone who's alwayson the go, this ring is a lifesaver! It tracks everything from my fitness to my sleep, and it's so light I forget i'm wearning. A must-have for anyone serious about their health."</span></div></div><div class="c-lc9846 c-oaxxat cevei02 czb3o6e c-evftdq cb447zj c-ix174f c4b23w2 c-6s5fkd c1kzpo2"><img src="assets/customer-review-mike-img.webp" alt="Image header" class="csof1td cjmgjye c-d7jzl0 c-9sljs7 cgzjvxm c28pfq1 c-2dppsr c-g5r7oi c-vtex09 c-gwxwyq" id="1" loading="lazy"/><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c8pono c-xempt3 c-6s5fkd c1kzpo2 c-e4pwfg c9dzy6s cbuk2vp"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s c-b1u9qq c-crbsvi c-xempt3"><span class="c-chr53o c-mdsko">Mike_Techie</span><img src="assets/green-checkbox-icon.webp" alt="Image header" class="c-hse4yk c6iqupc c-d7jzl0 c-6khkbl c-6pfm5i c-xzb5ii" id="1" loading="lazy"/></div><span class="c-mwb6z">Verified Buyer</span><img src="assets/five-strars-icon.webp" alt="Image header" class="c-i6gz6l ciw07cc c-d7jzl0 c-v0br6m c-img9rw c6xm55r" id="1" loading="lazy"/><span class="cry5ewc ctvn7y0">"I used to struggle with constant stress and did,´t even realize how bad it was until i started using the Vital Health Ring. It's helped me monitor and manage my stress like never before. I can finally relax and feel more in control!"</span></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c7e7cj7 c2u2kz6 c-lyy4od"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l cimxrfb ccdkvsh cgt2htg cwzv3pd cey0ojg cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 cnkzvdv c-2jhazy c-ye80rj" data-cta-button=""><span class="c-tcnln5 cz02kxo c-v947c4 cybjsex csdhym c-jp23n5 c4g095x ckx71ul cblk96j">LOW STOCK - ORDER HERE</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cecu77f c-468i9h" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp cvceul9 c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03 c-468i9h"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-6s5fkd c-468i9h"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0">Stock: Only 58 Vital Health Rings Left!</span></div></div><div class="c-lc9846 c-o6hhdg c-rri4mx cxpk1f6 c7l9c6s c-a4oera c5ebccj c-y3xmfn c-6s5fkd c1kzpo2 ctvpbvu c-kixfe9 c6yq6k4 cfr8k07"><span class="c-n92bdn cblmt4n c-t96nrg">Only</span><span class="c-n92bdn c-gr2n37 cblmt4n">&nbsp;73 pieces</span><span class="c-n92bdn c-t96nrg cblmt4n">&nbsp;left at this price</span></div></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-3n4ynq c-d8btpc c-6s5fkd cuhz3h5"><span class="c-la7dy cybjsex cost8u3 c-n92bdn c5ak960">Vital Health Ring: Invest in the Best</span><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-4au6wl c-gg2k9s ci7btf8 cun148d c-6b6cu1 c-lib3ob c-mtr8v ch4dt5n c-6s5fkd c1c751h cm7ktim ckyhy7i cxizwz6"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx custq9j c-aop3ja c-b1u9qq c-crbsvi ctduf03 cmptzie ctfmc74 c39gw0t cr8hjai cg8cmuh c-lmqbe"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx ciz8ndi cfo945t"><span class="c-m8oog c-n92bdn c-ln4oif cw8smyy">.</span></div><span class="c-lq625 cey0ojg c-3n622u c-n92bdn c-aojzn2 c-b1p5ui c-jolhzf cbllj5l ctv54q2 c2z8rn8">Criteria</span><span class="c-mcilm c-n92bdn cey0ojg c-aojzn2 c-b1p5ui c-jp40lq ctujf64 c2yn23a">Discreet Design</span><span class="c-mcilm cey0ojg c-3n622u c-n92bdn cwya1ez c-xscfep c-jp40lq ctuk25n c2ynp2t">Accurate Results</span><span class="c-mcilm c-n92bdn cey0ojg cwya1ez c-xscfep c-jp40lq ctujf64 c2yn23a">Fast Charging Speed</span><span class="c-mcilm cey0ojg c-3n622u c-n92bdn c-aojzn2 c-b1p5ui c-jp40lq ctuk25n c2ynp2t">Battery Life</span><span class="c-mcilm c-n92bdn cey0ojg cwya1ez c-xscfep c-jp40lq c4fl3xr">Water Resistance</span><span class="c-mcilm cey0ojg c-3n622u c-n92bdn c-aojzn2 c-b1p5ui c-jp40lq c-dahqfv c4fl3xr">In-app Data Analysis</span><span class="c-mcilm c-n92bdn cey0ojg c-aojzn2 c-b1oiuz c-jp40lq">Durable and Comfortable</span></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-o78a1r c-aop3ja c-b1u9qq cuo0vhx ctduf03 cmptzie ctfmc74 c-7ev3wu cr8hj9n cjyj6jl cgsw113 cg64thi c-ioryhn cgs4iwo c-n3n0o5 cohz460"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-4au6wl ciz8ndi cnvgvs5 c7l9c6s"><img src="assets/vital-health-ring-icon.webp" alt="Image header" class="c28gxdv cgr3d1x c-d7jzl0 ctfmc74 cogyq3b c-75arrj c7in2q0 cxcyels cjyj6jl ch1qqdx c-tv8e1c c-ioryhn" id="1" loading="lazy"/></div><span class="c-mb8mk cey0ojg c-3n622u c-n92bdn cnvhiro cck16cw cybjsex c-jp40lq cbllj5l">&nbsp;Vital Health Ring&nbsp;</span><span class="c-lsq09 c-n92bdn cey0ojg c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q c-n92bdn cey0ojg c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q c-n92bdn cey0ojg c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-lqt1o c-n92bdn cey0ojg c-aop3ja c-b1u9qq c-jo49c6 c-xegyxc c-kiroii">✓</span></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx cs4l4lt c-aop3ja c-b1u9qq cuo0vhx ctduf03 cmptzie ctfmc74 cr8hj8s c-6gbwg9 cjyj6jl ch9dutx cg64thi c-ioryhn chqaymp"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s ciz8ndi c-4au6wl cfon5vf"><img src="assets/60698692aaca114f1c2602ff3a90e59b.png" alt="Image header" class="c1siw6e cgbp4ft c-d7jzl0 ctfmc74 cofpe0u cv4ctcs c7hjhja cxcas39 cjyj6jl ch1txbk" id="1" loading="lazy"/></div><span class="c-mb8mk cciahq7 c-3n622u c-n92bdn cnvhiro cck16cw cybjsex c-jp40lq">&nbsp;Competitor 1&nbsp;</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybl2dz c-jo49c6">✗</span><span class="c-ls30q cg4wdnv c-3n622u c-n92bdn c-aop3ja c-b1u9qq cybl2dz c-jo49c6">✗</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybkfeg c-jo49c6">✗</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-lrg17 c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybkfeg c-jo49c6">✗</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq c-jo49c6">✓</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybjsex c-jo49c6 c-xegyxc c-kiroii">✗</span></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-d1p51x c-aop3ja c-b1u9qq cuo0vhx ctduf03 cmptzie ctfmc74 cr8hj7x c-5kcn3o c-468i9h cfr8k07"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-4au6wl ciz8ndi c7l9c6s"><img src="assets/205fa2f01c60bb55649259e2cc48004a.png" alt="Image header" class="c1siw6e cgbp4ft c-d7jzl0 ctfmc74 cofapbp c-75arrj" id="1" loading="lazy"/></div><span class="c-mb8mk cciahq7 c-3n622u c-n92bdn cnvhiro cck16cw cybjsex">&nbsp;Competitor 2&nbsp;</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybl2dz">✗</span><span class="c-ls30q cg4wdnv c-3n622u c-n92bdn c-aop3ja c-b1u9qq cybl2dz">✗</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybkfeg">✗</span><span class="c-ls30q cg4wdnv c-3n622u c-n92bdn c-aop3ja c-b1u9qq cybl2dz">✗</span><span class="c-ls30q c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybkfeg">✗</span><span class="c-ls30q cey0ojg c-3n622u c-n92bdn c-aop3ja c-b1u9qq cybiifv">✓</span><span class="c-lqt1o c-n92bdn cg4wdnv c-aop3ja c-b1u9qq cybjsex">✗</span></div></div><div class="c-lc9846 c-o6hhdg cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c7e7cj7 c-6s5fkd c1kzpo2 c6yq6k4 c-ehlcw8"><a class="c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cey0ojg cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6"><span class="c-m9yni cz02kxo c-v947c4 cybjsex c-joney0">Order Now &amp; Save 50%</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cnci0qd" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 cnkzvdv"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-6s5fkd"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div><div class="c-lc9846 c-oaxxat c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-aop3ja ctduf03 c-crbsvi c-b1u9qq cbuk2vp ckyhy7i"><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s c-aop3ja c7e7cj7 c2u6ewc"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l c-z1rj74 ccdkvsh cgt2htg cwzv3pd cz02kxo cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6 c-x2elfo c-m9yni cybjsex" data-cta-button=""><span class="c-n92bdn c-d8btpc">Unlock&nbsp;</span><span class="c-n92bdn c-d8btpc">50%</span><span class="c-n92bdn c-d8btpc">&nbsp;Discount</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cnci0qd" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp c-b1u9qq c-crbsvi ctduf03 c-mvo7g cvceul9 ctvpbvu c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-crbsvi ctduf03 c-b1u9qq c-aop3ja c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2 c5ebccj"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0 c-oz46bj">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c7l9c6s c-d8btpc c45vmlf cnx2mud"><span class="c-la7dy cybkfeg cgt2htg cwzv3pd c-jolhzf c-kd3imu cx351yt ccw0nr1">Frequently Asked Questions</span><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-b6rfq cx6zd46 c9b8lem"><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">Is the Vital Health Ring difficult to set up?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">How accurate is the health data provided by the Vital Health Ring?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">Can I wear the Vital Health Ring all day, even while sleeping?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">What if I’m not tech-savvy? Will I still be able to use it?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">What happens if I’m not satisfied with the product?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">Is the Vital Health Ring compatible with my phone?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">How long does the battery last?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 cq10fwz cevei02 c-rri4mx cfvwpbu czfsfdv c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-tqu0hl cxd973x c5gp6j9 cp0kwla" data-expandable-element=""><div class="c-lc9846 cq10fwz c-rri4mx cevei02 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5" data-expandable-trigger="1"><span class="c-md5l5 cybkfeg cost8u3 cx223rm ccw00ri c-b72ju">Q:&nbsp;</span><span class="c-md5l5 cybkfeg ctw4gl9 cx223rm ccw00ri">Can I buy the Vital Health Ring in stores?</span><div class="c-i9vfpo c-u6bap8 c-pzcuxk cuo370x c-cgp2b4 c-mb61ox c-63hydz cf4pxvt c-46t6vk c-o6hhdg"><label htmlFor="" key="">
+            <input
+              type="checkbox"
+              id=
+              value=
+              false
+            />
+            
+          </label></div></div><div class="transition-all c-lc9846 cq10fwz c-rri4mx cxpk1f6 c7l9c6s c-a4oera c-46t6vk cck0jdd cnvgvs5 cunjmuo" data-expandable-area=""><p class="cmyac1f c-d8btpc">"Text Component" - click here to edit!</p></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c7l9c6s cnvgvs5 c7e7cj7 c-468i9h cfr8k07"><a class="cta-btn c-lc9846 c-oaxxat cevei02 c-rri4mx cju698t c-jaytv5 c-sc1q4l cunjefk ccdkvsh cgt2htg cwzv3pd cey0ojg cmtuajo ch8wzy4 c-i9vfpo c-evftdq c7l9c6s c-4au6wl c-z3x91n c-mb5epe cb3kfe6" data-cta-button=""><span class="c-mdsko cz02kxo c-v947c4 cybkfeg csdhym c-jp2qmo">ORDER NOW - LIMITED STOCK!</span><img src="assets/arrow-right-circle.svg" class="c-i8nx4x ciw0frg c-d7jzl0 cmtuajo ctfmc74 cecu77f" loading="lazy"/></a><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c7l9c6s cnwiykp cvceul9 c-xempt3 c-kixfe9 c-6s5fkd c1kzpo2"><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aontk8 c-b1szro c-crbsvi ctduf03"><img src="assets/green-ball.webp" alt="Image header" class="c-hu1iqn c6hn9im c-d7jzl0" id="1" loading="lazy"/><span class="c-fi10o0">Ships by 22nd December</span></div><div class="c-lc9846 c-oaxxat c-rri4mx cevei02 c7l9c6s c-a4oera c-aop3ja c-b1u9qq c-crbsvi ctduf03 c-6s5fkd"><img src="assets/hourglass-icon.webp" alt="Image header" class="c-i8o5k1 ciw07cc c-d7jzl0 c-wdpes" id="1" loading="lazy"/><span class="c-fi10o0">Stock: Only 58 Vital Health Rings Left!</span></div></div></div></div></div><div class="c-lc9846 c-oaxxat cxpk1f6 c-rri4mx c-3n4ynq c-n92bdn c-8dhzqc c-d8btpc"><div class="c-lc9846 c-oaxxat cevei02 c-rri4mx c-5pdfmv c-evftdq cmqx5a3 cz02kxo c-mb6oog c-xwyqlc c-y3dtua"><a class="" href="/contact">Contact</a><a class="" href="/terms">Terms Of Use</a><a class="" href="/policies">Privacy Policy</a></div><span class=""><div><div><div>THIS IS AN ADVERTISEMENT AND NOT AN ACTUAL NEWS ARTICLE, BLOG, OR CONSUMER PROTECTION UPDATE</div><div>All trademarks, logos and brand names are the property of their respective owners. All company, product and service names used in this website are for</div><div>identification purposes only. Use of these names,trademarks and brands does not imply appropriation of the intellectual property. The owner of this site has</div><div>received clearance from the Official provider of the product advertised on this page, to use all respective material (brand names, trademarks, logos) for</div><div>marketing purposes.</div><div>MARKETING DISCLOSURE: This website is a marketplace. As such, you should know that the owner has a monetary connection to the product and services<br><span data-metadata="&lt;!--(figmeta)eyJmaWxlS2V5IjoibjhYWWltcUlhc0RtMm1ESDF5VkJvTCIsInBhc3RlSUQiOjExNDE3MTE4NDIsImRhdGFUeXBlIjoic2NlbmUifQo=(/figmeta)--&gt;"></span><span data-buffer="&lt;!--(figma)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(/figma)--&gt;"></span><span style="white-space-collapse: preserve;">advertised on the site. The owner receives payment whenever a qualified lead is referred, but that is the extent of it. Read more on our </span><span style="white-space-collapse: preserve;">Advertising Disclosure.</span></div><span data-metadata="&lt;!--(figmeta)eyJmaWxlS2V5IjoibjhYWWltcUlhc0RtMm1ESDF5VkJvTCIsInBhc3RlSUQiOjc3NTUwNDMxMywiZGF0YVR5cGUiOiJzY2VuZSJ9Cg==(/figmeta)--&gt;"></span>We are not responsible for product returns, product-related support, and product shipping. If you are not fully happy with the goods you have received,</div><div>please contact the provider of the goods directly. You can find more information regarding the provider(s) of the product(s) via our Private Policy Statement</div><div>or on our Contact page. By using our website, you understand and agree that you are solely responsible for making your own evaluations, decisions, and</div><div>assessments about whether to engage with any service that is provided. All representations and warranties regarding the information presented on this</div><div>page are disclaimed. The information, including pricing, which appears on this site, is subject to change at any time.<br><br></div><div>ADVERTISING DISCLOSURE: This website and the products &amp; services referred to on the site are advertising marketplaces. This website is an advertisement and</div><div>not a news publication. Any photographs of persons used on this site are models. All product names, logos, and brands are intellectual property of their</div><div>respective owners. All company, product, and service names used on this website are for identification purposes only. The use of these names, logos, and</div><div>brands does not imply endorsement. The owner of this site and of the products and services referred to on this site only provides a service that consumers</div><div>can obtain and compare. Our website can contain hyperlinks. If you click this hyperlink, you will leave our website and go to another company’s website. At</div><div>that point, our site does not have any influence on the services offered by the website in question or on the website’s methods. These websites have their own</div><div>privacy policy that is completely separate from our privacy policy. Our privacy policy only refers to data processed by this site. Therefore, this site does not</div><div>accept any responsibility or liability for services and/or websites by third parties or their methods and/or contents.<br><br></div><div>HEALTH DISCLAIMER: This website is not intended to provide medical advice or to take the place of medical advice and treatment from your personal</div><div>physician. Visitors are advised to consult their own doctors or other qualified health professional regarding the treatment of medical conditions. The author</div><div>shall not be held liable or responsible for any misunderstanding or misuse of the information contained on this site or for any loss, damage, or injury caused,</div><div>or alleged to be caused, directly or indirectly by any treatment, action, or application of any food or food source discussed in this website. The U.S. Food and</div><div>Drug Administration have not evaluated the statements on this website. The information is not intended to diagnose, treat, cure, or prevent any disease.</div></div></span></div></div></div><script src="https://stdigitalmvmtstaging001.blob.core.windows.net/libs/mvmt-latest.staging.js.min.js"></script><script src="scripts/landing.js"></script><script>const timer = document.getElementById('offer-timer')
+
+let hrs = 0;
+let min = 59;
+let sec = 55;
+let intervalId
+
+function updateTimer () {
+  sec = -1;
+  if (hrs === 0 && min === 0 && sec === 0 ) {
+    clearInterval(intervalId);
+    timer.innerText = "0 : 00 : 00"
+    return
+  }
+
+  const minFormatted = min > 9 ? min : `0${min}`;
+  const secFormatted = sec > 9 ? sec : `0${sec}`;
+
+  timer.innerText = `${hrs} : ${minFormatted} : ${secFormatted}`;
+
+  if (min === 0 && sec === 00) {
+    hrs = -1;
+    min = 59;
+    sec = 60;
+  }
+
+  if (sec === 0) {
+    min = -1;
+    sec = 59;
+  }
+}
+
+if (timer) {
+  intervalId = setInterval(updateTimer, 1000);
+}</script><script>function parseTimeString(timeStr) {
+    const parts = timeStr.split(":").map(Number);
+    if (parts.length === 3) {
+        const [h, m, s] = parts;
+        return h * 3600 + m * 60 + s;
+    } else if (parts.length === 2) {
+        const [m, s] = parts;
+        return m * 60 + s;
+    }
+    return 0;
+}
+
+function formatTime(seconds) {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = seconds % 60;
+    if (h > 0) {
+        return `${String(h).padStart(2, "0")}:${String(m).padStart(
+            2,
+            "0"
+        )}:${String(s).padStart(2, "0")}`;
+    } else {
+        return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
+    }
+}
+
+function startFomoTimers() {
+    const timerElements = document.querySelectorAll("[data-timer]");
+
+    timerElements.forEach((el) => {
+        let timeLeft = parseTimeString(el.textContent.trim());
+
+        if (timeLeft <= 0) return;
+
+        const interval = setInterval(() => {
+            if (timeLeft <= 0) {
+                clearInterval(interval);
+                el.textContent = "00:00";
+                el.classList.add("expired"); // Optional: mark as expired
+                return;
+            }
+
+            timeLeft--;
+            el.textContent = formatTime(timeLeft);
+        }, 1000);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", startFomoTimers);
+</script><script>document.addEventListener("DOMContentLoaded", () => {
+  const expandableElements = Array.from(
+    document.querySelectorAll("[data-expandable-element]")
+  );
+  if (expandableElements.length === 0) return;
+
+  const shouldExpand = (checkboxDiv, checkbox) => {
+    if (Number(checkboxDiv.dataset.expandableTrigger)) {
+      return checkbox.checked;
+    }
+    return !checkbox.checked;
+  };
+
+  const toggleExpandableArea = (element, checkboxDiv, checkbox) => {
+    const elementStyle = element.style;
+    if (shouldExpand(checkboxDiv, checkbox)) {
+      const elementStyle = element.style;
+      elementStyle.paddingBlock = "1rem";
+      elementStyle.maxHeight = element.scrollHeight * 1.5 + 30 + "px";
+      elementStyle.overflow = "visible";
+    } else {
+      const elementStyle = element.style;
+      elementStyle.maxHeight = 0;
+      elementStyle.overflow = "hidden";
+      elementStyle.paddingBlock = 0;
+    }
+  };
+
+  expandableElements.forEach((expandableElement) => {
+    const element = expandableElement.querySelector(
+      "[data-expandable-area]"
+    );
+    const checkboxDiv = expandableElement.querySelector(
+      "[data-expandable-trigger]"
+    );
+    const checkbox = checkboxDiv.querySelector("input");
+    checkboxDiv.addEventListener("click", () => checkbox.click());
+
+    element.style.flexWrap = "nowrap";
+    toggleExpandableArea(element, checkboxDiv, checkbox);
+
+    checkbox.addEventListener("click", () => {
+      toggleExpandableArea(element, checkboxDiv, checkbox);
+    });
+  });
+});</script>
+<script type="application/json" id="page-config">
+{
+  "campaignId": "40",
+  "pageType": "LandingPage",
+  "funnelId": "6a145c747bff10f9e9b453c8",
+  "locale": "US"
+}
+</script>
+
+<script>
+(function () {
+  function parseTimeString(timeStr) {
+    var parts = timeStr.split(":").map(Number);
+    if (parts.length === 3) {
+      var h = parts[0], m = parts[1], s = parts[2];
+      return h * 3600 + m * 60 + s;
+    } else if (parts.length === 2) {
+      var m = parts[0], s = parts[1];
+      return m * 60 + s;
+    }
+    return 0;
+  }
+
+  function formatTime(seconds) {
+    var h = Math.floor(seconds / 3600);
+    var m = Math.floor((seconds % 3600) / 60);
+    var s = seconds % 60;
+    var pad = function (n) { return String(n).padStart(2, "0"); };
+    if (h > 0) {
+      return pad(h) + ":" + pad(m) + ":" + pad(s);
+    }
+    return pad(m) + ":" + pad(s);
+  }
+
+  function startFomoTimers() {
+    var timerElements = document.querySelectorAll("[data-timer]:not([data-fomo-timer-init])");
+    timerElements.forEach(function (el) {
+      if (el.hasAttribute("data-fomo-timer-init")) return;
+      var timeLeft = parseTimeString(el.textContent.trim());
+      if (timeLeft <= 0) return;
+      el.setAttribute("data-fomo-timer-init", "");
+      var interval = setInterval(function () {
+        if (timeLeft <= 0) {
+          clearInterval(interval);
+          el.textContent = "00:00";
+          el.classList.add("expired");
+          return;
+        }
+        timeLeft--;
+        el.textContent = formatTime(timeLeft);
+      }, 1000);
+    });
+  }
+
+  document.addEventListener("DOMContentLoaded", startFomoTimers);
+})();
+</script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      setTimeout(() => {
+        const cookiesBanner = document.querySelector("[data-cookie-banner]");
+        const cookieAcceptButton = document.querySelector("[data-cookie-accept-button]");
+        const cookieRejectButton = document.querySelector("[data-cookie-reject-button]");
+
+        if (!(cookiesBanner && cookieAcceptButton && cookieRejectButton)) return;
+
+        const cookieDependentScripts = [];
+        const cookiesAnswer = sessionStorage.getItem("cookiesAnswer");
+
+        if (cookiesAnswer === "accepted" || cookiesAnswer === "rejected") {
+          cookiesBanner.style.display = "none";
+          injectTrackingScripts();
+        } else {
+          cookiesBanner.style.display = "flex";
+        }
+
+        cookieAcceptButton.addEventListener("click", () => {
+          sessionStorage.setItem("cookiesAnswer", "accepted");
+          cookiesBanner.style.display = "none";
+          if (cookieDependentScripts.length > 0) injectTrackingScripts()
+        });
+
+        cookieRejectButton.addEventListener("click", () => {
+          sessionStorage.setItem("cookiesAnswer", "rejected");
+          cookiesBanner.style.display = "none";
+        });
+
+        function injectTrackingScripts() {
+          cookieDependentScripts.forEach((script) => {
+            if (script.src) {
+              const scriptElement = document.createElement("script");
+              scriptElement.src = script.src;
+              scriptElement.async = true;
+              document.head.appendChild(scriptElement);
+            } else if (script.text) {
+              const scriptElement = document.createElement("script")
+              scriptElement.innerHTML = script.text;
+              document.head.appendChild(scriptElement);
+            }
+          })
+        }
+      }, 500);
+    });
+  </script>
+  </body></html>
